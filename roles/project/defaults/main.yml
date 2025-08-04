@@ -1,0 +1,5 @@
+---
+projects_operator_default_limit_cpu: 0.5
+projects_operator_default_limit_memory: 1Gi
+projects_operator_default_request_cpu: 0.5
+projects_operator_default_request_memory: 1Gi

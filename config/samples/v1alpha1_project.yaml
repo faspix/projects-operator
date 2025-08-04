@@ -1,0 +1,31 @@
+apiVersion: faspix.project/v1alpha1
+kind: Project
+metadata:
+  labels:
+    app.kubernetes.io/name: operator-k8s
+    app.kubernetes.io/managed-by: kustomize
+  name: project-sample
+spec:
+  owner: "dev-team-1"
+  environments:
+    - name: prod
+      resources:
+        requests:
+          cpu: 1
+          memory: 1Gi
+        limits:
+          cpu: 1
+          memory: 1Gi
+    - name: stage
+      resources:
+        requests:
+          cpu: 0.5
+          memory: 1Gi
+        limits:
+          cpu: 0.8
+          memory: 1Gi
+    - name: dev
+  rbac:
+    adminGroup: "dev-team-1-admins"
+    devGroup: "dev-team-1-devs"
+    viewerGroup: "dev-team-1-viewers"

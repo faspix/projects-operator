@@ -1,0 +1,23 @@
+# permissions for end users to view projects.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: operator-k8s
+    app.kubernetes.io/managed-by: kustomize
+  name: project-viewer-role
+rules:
+- apiGroups:
+  - faspix.project
+  resources:
+  - projects
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - faspix.project
+  resources:
+  - projects/status
+  verbs:
+  - get
