@@ -2,9 +2,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: projects.faspix.project
+  name: projects.faspix.com
 spec:
-  group: faspix.project
+  group: faspix.com
   names:
     kind: Project
     listKind: ProjectList

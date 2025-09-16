@@ -9,7 +9,7 @@
         name: "{{ ansible_operator_meta.name }}-{{ item.name }}"
         labels:
           app.kubernetes.io/managed-by: "projects-operator"
-          faspix.project/owner: "{{ owner }}"
+          faspix.com/owner: "{{ owner }}"
   loop: "{{ environments }}"
 
 - name: Create a resource quota
@@ -23,7 +23,7 @@
         name: resource-quota
         labels:
           app.kubernetes.io/managed-by: "projects-operator"
-          faspix.project/owner: "{{ owner }}"
+          faspix.com/owner: "{{ owner }}"
       spec:
         hard:
           limits.cpu: "{{ item.resources.limits.cpu | default(projects_operator_default_limit_cpu, true)}}"
@@ -43,7 +43,7 @@
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
         labels:
           app.kubernetes.io/managed-by: "projects-operator"
-          faspix.project/owner: "{{ owner }}"
+          faspix.com/owner: "{{ owner }}"
       spec:
         limits:
           - type: Container
@@ -66,7 +66,7 @@
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
         labels:
           app.kubernetes.io/managed-by: "projects-operator"
-          faspix.project/owner: "{{ owner }}"
+          faspix.com/owner: "{{ owner }}"
       subjects:
         - kind: Group
           name: "{{ rbac.adminGroup }}"
@@ -88,7 +88,7 @@
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
         labels:
           app.kubernetes.io/managed-by: "projects-operator"
-          faspix.project/owner: "{{ owner }}"
+          faspix.com/owner: "{{ owner }}"
       subjects:
         - kind: Group
           name: "{{ rbac.devGroup }}"
@@ -110,7 +110,7 @@
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
         labels:
           app.kubernetes.io/managed-by: "projects-operator"
-          faspix.project/owner: "{{ owner }}"
+          faspix.com/owner: "{{ owner }}"
       subjects:
         - kind: Group
           name: "{{ rbac.viewerGroup }}"

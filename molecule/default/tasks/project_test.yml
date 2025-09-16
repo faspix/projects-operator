@@ -1,5 +1,5 @@
 ---
-- name: Create the faspix.project/v1alpha1.Project
+- name: Create the faspix.com/v1alpha1.Project
   k8s:
     state: present
     namespace: '{{ namespace }}'

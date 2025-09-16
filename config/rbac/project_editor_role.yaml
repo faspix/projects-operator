@@ -8,7 +8,7 @@ metadata:
   name: project-editor-role
 rules:
 - apiGroups:
-  - faspix.project
+  - faspix.com
   resources:
   - projects
   verbs:
@@ -20,7 +20,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - faspix.project
+  - faspix.com
   resources:
   - projects/status
   verbs:

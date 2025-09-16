@@ -64,6 +64,7 @@ spec:
           - --health-probe-bind-address=:6789
         image: controller:latest
         name: manager
+        imagePullPolicy: IfNotPresent # FIXME
         env:
         - name: ANSIBLE_GATHERING
           value: explicit

@@ -44,10 +44,10 @@ rules:
       - view
       - admin
   ##
-  ## Rules for faspix.project/v1alpha1, Kind: Project
+  ## Rules for faspix.com/v1alpha1, Kind: Project
   ##
   - apiGroups:
-      - faspix.project
+      - faspix.com
     resources:
       - projects
       - projects/status
