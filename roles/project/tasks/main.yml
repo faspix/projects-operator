@@ -7,9 +7,16 @@
       kind: Namespace
       metadata:
         name: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels:
-          app.kubernetes.io/managed-by: "projects-operator"
-          faspix.com/owner: "{{ owner }}"
+        labels: "{{ {
+            'app.kubernetes.io/managed-by': 'projects-operator',
+            'faspix.com/owner': owner,
+            ('pod-security.kubernetes.io/' ~ (item.podSecurity.type | default(projects_operator_default_podSecurity_type, true))): 
+            (item.podSecurity.level | default(projects_operator_default_podSecurity_level, true)),
+            'pod-security.kubernetes.io/' ~ (item.podSecurity.type | default(projects_operator_default_podSecurity_type, true)) ~ '-version': 
+            (item.podSecurity.version | default(projects_operator_default_podSecurity_version, true)),
+          } }}"
+        finalizers: >-
+          {{ item.finalizers | default([projects_operator_default_finalizer], true) }}
   loop: "{{ environments }}"
 
 - name: Create a resource quota
@@ -27,10 +34,12 @@
       spec:
         hard:
           pods: "{{ item.resources.quota.pods | default(projects_operator_default_quota_pods, true) }}"
+          configmaps: "{{ item.resources.quota.configmaps | default(projects_operator_default_quota_configmaps, true) }}"
+          secrets: "{{ item.resources.quota.secrets | default(projects_operator_default_quota_secrets, true) }}"
           limits.cpu: "{{ item.resources.quota.limits.cpu | default(projects_operator_default_quota_limit_cpu, true) }}"
           limits.memory: "{{ item.resources.quota.limits.memory | default(projects_operator_default_quota_limit_memory, true) }}"
           requests.cpu: "{{ item.resources.quota.requests.cpu | default(projects_operator_default_quota_request_cpu, true) }}"
-          requests.memory: "{{ item.resources.quota.requests.memory | default(projects_operator_quota_default_request_memory, true) }}"
+          requests.memory: "{{ item.resources.quota.requests.memory | default(projects_operator_default_quota_request_memory, true) }}"
           requests.storage: "{{ item.resources.quota.requests.storage | default(projects_operator_default_quota_storage, true) }}"
   loop: "{{ environments }}"
 
@@ -146,13 +155,20 @@
         policyTypes:
           - Ingress
           - Egress
-  loop: "{{ spec.environments }}"
+  loop: "{{ environments }}"
 
-- name: Create service account for ci cd
+- name: Create default ServiceAccounts
   kubernetes.core.k8s:
-    state: present 
-    definition: 
-    kind: ServiceAccount
-    metadata:
-      name: ci-deployer
-      namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: "{{ item.1.name | default(projects_operator_default_service_account_name, true) }}"
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels:
+          app.kubernetes.io/managed-by: "projects-operator"
+          faspix.com/owner: "{{ owner }}"
+  loop: "{{ environments | subelements('serviceAccounts', skip_missing=True) }}"
+  loop_control:
+    label: "{{ item.1.name if item.1 is defined else item.name }}"

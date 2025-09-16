@@ -9,14 +9,26 @@ spec:
   owner: "dev-team-1"
   environments:
     - name: prod
+      podSecurityEnforceLevel: restricted
+      finalizers:
+        - kubernetes
+      serviceAccounts:
+        - name: acc1
+        - name: acc2
+      podSecurity:
+        type: audit
+        level: baseline
+        version: latest
       resources:
         quota:
+          pods: 20 
+          secrets: 20 
+          configmaps: 20
           requests:
             cpu: 5
             memory: 50Gi
             storage: 100Gi
           limits:
-            pods: 20
             cpu: 8
             memory: 80Gi
         defaultLimitRange:

@@ -1,4 +1,12 @@
 ---
+projects_operator_default_service_account_name: deployer
+
+projects_operator_default_podSecurity_type: enforce
+projects_operator_default_podSecurity_level: restricted
+projects_operator_default_podSecurity_version: latest
+
+projects_operator_default_finalizer: kubernetes
+
 projects_operator_default_limit_cpu: 0.5
 projects_operator_default_limit_memory: 1Gi
 projects_operator_default_request_cpu: 0.5
@@ -8,8 +16,11 @@ projects_operator_default_max_memory: 5Gi
 projects_operator_default_min_cpu: 100m
 projects_operator_default_min_memory: 128Mi 
 
-projects_operator_default_quota_storage: 50Gi
+
 projects_operator_default_quota_pods: 30
+projects_operator_default_quota_configmaps: 30
+projects_operator_default_quota_secrets: 30
+projects_operator_default_quota_storage: 50Gi
 projects_operator_default_quota_limit_cpu: 10
 projects_operator_default_quota_limit_memory: 10Gi
 projects_operator_default_quota_request_cpu: 8
