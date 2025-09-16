@@ -3,3 +3,14 @@ projects_operator_default_limit_cpu: 0.5
 projects_operator_default_limit_memory: 1Gi
 projects_operator_default_request_cpu: 0.5
 projects_operator_default_request_memory: 1Gi
+projects_operator_default_max_cpu: 2
+projects_operator_default_max_memory: 5Gi 
+projects_operator_default_min_cpu: 100m
+projects_operator_default_min_memory: 128Mi 
+
+projects_operator_default_quota_storage: 50Gi
+projects_operator_default_quota_pods: 30
+projects_operator_default_quota_limit_cpu: 10
+projects_operator_default_quota_limit_memory: 10Gi
+projects_operator_default_quota_request_cpu: 8
+projects_operator_default_quota_request_memory: 8Gi

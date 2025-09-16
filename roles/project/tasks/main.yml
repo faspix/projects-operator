@@ -26,10 +26,12 @@
           faspix.com/owner: "{{ owner }}"
       spec:
         hard:
-          limits.cpu: "{{ item.resources.limits.cpu | default(projects_operator_default_limit_cpu, true)}}"
-          limits.memory: "{{ item.resources.limits.memory | default(projects_operator_default_limit_memory, true)}}"
-          requests.cpu: "{{ item.resources.requests.cpu | default(projects_operator_default_request_cpu, true)}}"
-          requests.memory: "{{ item.resources.requests.memory | default(projects_operator_default_request_memory, true)}}"
+          pods: "{{ item.resources.quota.pods | default(projects_operator_default_quota_pods, true) }}"
+          limits.cpu: "{{ item.resources.quota.limits.cpu | default(projects_operator_default_quota_limit_cpu, true) }}"
+          limits.memory: "{{ item.resources.quota.limits.memory | default(projects_operator_default_quota_limit_memory, true) }}"
+          requests.cpu: "{{ item.resources.quota.requests.cpu | default(projects_operator_default_quota_request_cpu, true) }}"
+          requests.memory: "{{ item.resources.quota.requests.memory | default(projects_operator_quota_default_request_memory, true) }}"
+          requests.storage: "{{ item.resources.quota.requests.storage | default(projects_operator_default_quota_storage, true) }}"
   loop: "{{ environments }}"
 
 - name: Create LimitRange
@@ -48,11 +50,17 @@
         limits:
           - type: Container
             default:
-              cpu: "{{ item.resources.limits.cpu | default(projects_operator_default_limit_cpu, true)}}"
-              memory: "{{ item.resources.limits.memory | default(projects_operator_default_limit_memory, true)}}"
+              cpu: "{{ item.resources.defaultLimitRange.limits.cpu | default(projects_operator_default_limit_cpu, true) }}"
+              memory: "{{ item.resources.defaultLimitRange.limits.memory | default(projects_operator_default_limit_memory, true) }}"
             defaultRequest:
-              cpu: "{{ item.resources.requests.cpu | default(projects_operator_default_request_cpu, true)}}"
-              memory: "{{ item.resources.requests.memory | default(projects_operator_default_request_memory, true)}}"
+              cpu: "{{ item.resources.defaultLimitRange.requests.cpu | default(projects_operator_default_request_cpu, true) }}"
+              memory: "{{ item.resources.defaultLimitRange.requests.memory | default(projects_operator_default_request_memory, true) }}"
+            max:
+              cpu: "{{ item.resources.defaultLimitRange.max.cpu | default(projects_operator_default_max_cpu, true) }}"
+              memory: "{{ item.resources.defaultLimitRange.max.memory | default(projects_operator_default_max_memory, true) }}"
+            min: 
+              cpu: "{{ item.resources.defaultLimitRange.min.cpu | default(projects_operator_default_min_cpu, true) }}"
+              memory: "{{ item.resources.defaultLimitRange.min.memory | default(projects_operator_default_min_memory, true) }}"
   loop: "{{ environments }}"
 
 - name: Create RBAC - Admins
@@ -121,4 +129,30 @@
         apiGroup: rbac.authorization.k8s.io
   loop: "{{ environments }}"
 
+- name: Create default deny-all NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: NetworkPolicy
+      apiVersion: networking.k8s.io/v1
+      metadata:
+        name: deny-all
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels:
+          app.kubernetes.io/managed-by: "projects-operator"
+          faspix.com/owner: "{{ owner }}"
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Ingress
+          - Egress
+  loop: "{{ spec.environments }}"
 
+- name: Create service account for ci cd
+  kubernetes.core.k8s:
+    state: present 
+    definition: 
+    kind: ServiceAccount
+    metadata:
+      name: ci-deployer
+      namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"

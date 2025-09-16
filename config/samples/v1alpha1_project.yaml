@@ -10,20 +10,37 @@ spec:
   environments:
     - name: prod
       resources:
-        requests:
-          cpu: 1
-          memory: 1Gi
-        limits:
-          cpu: 1
-          memory: 1Gi
+        quota:
+          requests:
+            cpu: 5
+            memory: 50Gi
+            storage: 100Gi
+          limits:
+            pods: 20
+            cpu: 8
+            memory: 80Gi
+        defaultLimitRange:
+          requests:
+            cpu: 1
+            memory: 1Gi
+          limits:
+            cpu: 1
+            memory: 1Gi
+          max:
+            cpu: 1
+            memory: 1Gi
+          min: 
+            cpu: 100m
+            memory: 128Mi
     - name: stage
       resources:
-        requests:
-          cpu: 0.5
-          memory: 1Gi
-        limits:
-          cpu: 0.8
-          memory: 1Gi
+        defaultLimitRange:
+          requests:
+            cpu: 0.5
+            memory: 1Gi
+          limits:
+            cpu: 0.8
+            memory: 1Gi
     - name: dev
   rbac:
     adminGroup: "dev-team-1-admins"
