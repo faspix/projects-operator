@@ -9,7 +9,10 @@ spec:
   owner: "dev-team-1"
   environments:
     - name: prod
-      podSecurityEnforceLevel: restricted
+      networkPolicies:
+        denyAll: true
+        allowDNS: true
+        allowEgressInternet: false
       finalizers:
         - kubernetes
       serviceAccounts:
