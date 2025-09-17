@@ -47,6 +47,7 @@ kubectl apply -f config/samples/v1alpha1_project.yaml
 ## Examples
 
 ### Minimal Example
+
 For a simple project with a single environment and basic RBAC:
 ```yaml
 apiVersion: faspix.com/v1alpha1
@@ -67,6 +68,7 @@ spec:
     admingroup: "my-team-admins"
 ```
 **Apply the minimal project:**
+
 ```bash
 kubectl apply -f simple-project.yaml
 ```
@@ -79,6 +81,7 @@ Below is an example of a `Project` custom resource that defines a multi-environm
 ### Example Project Custom Resource
 
 **Metadata and Ownership**
+
 The `metadata` section defines the name and labels for the project, while `spec.owner` specifies the team owning the project.
 ```yaml
 apiVersion: faspix.com/v1alpha1
@@ -92,6 +95,7 @@ spec:
   owner: "dev-team-1" # Team responsible for this project
 ```
 **Environments**
+
 The `environments` section defines the namespaces (e.g., `prod`, `stage`, `dev`) and their configurations, including network policies, resource quotas, and pod security settings.
 ```yaml
   environments:
@@ -148,6 +152,7 @@ The `environments` section defines the namespaces (e.g., `prod`, `stage`, `dev`)
     - name: dev # Development environment
 ```
 **RBAC Configuration**
+
 The `rbac` section assigns roles to groups for administrative, developer, and viewer access.
 ```yaml
   rbac: # Role-based access control
@@ -156,6 +161,7 @@ The `rbac` section assigns roles to groups for administrative, developer, and vi
     viewergroup: "dev-team-1-viewers" # Viewer group with read-only access
 ```
 **Apply the project:**
+
 Save the above configuration to a file (e.g., my-project.yaml) and apply it to your cluster:
 ```bash
 kubectl apply -f my-project.yaml
