@@ -9,55 +9,55 @@ spec:
   owner: "dev-team-1"
   environments:
     - name: prod
-      networkPolicies:
-        denyAll: true
-        allowDNS: true
-        allowEgressInternet: false
+      networkpolicies:
+        denyall: true
+        allowdns: false
+        allowegressinternet: false
+        allowingressfromothernamespaces: true
       finalizers:
         - kubernetes
-      serviceAccounts:
-        - name: acc1
-        - name: acc2
-      podSecurity:
+      serviceaccounts:
+        - acc1
+        - acc2
+      podsecurity:
         type: audit
         level: baseline
         version: latest
       resources:
         quota:
-          pods: 20 
-          secrets: 20 
-          configmaps: 20
+          pods: "20"
+          configmaps: "20"
           requests:
-            cpu: 5
-            memory: 50Gi
-            storage: 100Gi
+            cpu: "5"
+            memory: "50Gi"
+            storage: "100Gi"
           limits:
-            cpu: 8
-            memory: 80Gi
-        defaultLimitRange:
+            cpu: "8"
+            memory: "80Gi"
+        defaultlimitrange:
           requests:
-            cpu: 1
-            memory: 1Gi
+            cpu: "1"
+            memory: "1Gi"
           limits:
-            cpu: 1
-            memory: 1Gi
+            cpu: "1"
+            memory: "1Gi"
           max:
-            cpu: 1
-            memory: 1Gi
+            cpu: "1"
+            memory: "1Gi"
           min: 
-            cpu: 100m
-            memory: 128Mi
+            cpu: "100m"
+            memory: "128Mi"
     - name: stage
       resources:
         defaultLimitRange:
           requests:
-            cpu: 0.5
-            memory: 1Gi
+            cpu: "0.5"
+            memory: "1Gi"
           limits:
-            cpu: 0.8
-            memory: 1Gi
+            cpu: "0.8"
+            memory: "1Gi"
     - name: dev
   rbac:
-    adminGroup: "dev-team-1-admins"
-    devGroup: "dev-team-1-devs"
-    viewerGroup: "dev-team-1-viewers"
+    admingroup: "dev-team-1-admins"
+    devgroup: "dev-team-1-devs"
+    viewergroup: "dev-team-1-viewers"

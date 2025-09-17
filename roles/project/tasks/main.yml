@@ -1,26 +1,10 @@
 ---
 - name: Set common labels
   set_fact:
-    common_labels: >-
-      {{
-        {
-          'app.kubernetes.io/managed-by': 'projects-operator',
-          'faspix.com/owner': owner,
-          'faspix.com/project': ansible_operator_meta.name
-        }
-      }}
-
-- name: Set namespace labels
-  set_fact:
-    namespace_labels: >-
-      {{
-          common_labels | combine({
-            ('pod-security.kubernetes.io/' ~ (item.get('podSecurity', {}).get('type', projects_operator_default_podSecurity_type))):
-              item.get('podSecurity', {}).get('level', projects_operator_default_podSecurity_level),
-            ('pod-security.kubernetes.io/' ~ (item.get('podSecurity', {}).get('type', projects_operator_default_podSecurity_type)) ~ '-version'):
-              item.get('podSecurity', {}).get('version', projects_operator_default_podSecurity_version)
-        })
-      }}
+    common_labels:
+      app.kubernetes.io/managed-by: projects-operator
+      faspix.com/owner: "{{ owner }}"
+      faspix.com/project: "{{ ansible_operator_meta.name }}"
 
 - name: Create a namespace
   kubernetes.core.k8s:
@@ -32,9 +16,15 @@
         name: "{{ ansible_operator_meta.name }}-{{ item.name }}"
         labels: >-
           {{
-            namespace_labels | combine({'faspix.com/environment': item.name})
+            common_labels | combine({
+              'faspix.com/environment': item.name,
+              'pod-security.kubernetes.io/' ~ (item.podsecurity.type | default(projects_operator_default_podSecurity_type, true)):
+                (item.podsecurity.level | default(projects_operator_default_podSecurity_level, true)),
+              'pod-security.kubernetes.io/' ~ (item.podsecurity.type | default(projects_operator_default_podSecurity_type, true)) ~ '-version':
+                (item.podsecurity.version | default(projects_operator_default_podSecurity_version, true)),
+            })
           }}
-        finalizers: "{{ item.get('finalizers', [projects_operator_default_finalizer]) }}"
+      finalizers: "{{ item.get('finalizers', [projects_operator_default_finalizer]) }}"
   loop: "{{ environments }}"
 
 - name: Create a resource quota
@@ -46,20 +36,17 @@
       metadata:
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
         name: resource-quota
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       spec:
         hard:
-          pods: "{{ item.get('resources', {}).get('quota', {}).get('pods', projects_operator_default_quota_pods) }}"
-          configmaps: "{{ item.get('resources', {}).get('quota', {}).get('configmaps', projects_operator_default_quota_configmaps) }}"
-          secrets: "{{ item.get('resources', {}).get('quota', {}).get('secrets', projects_operator_default_quota_secrets) }}"
-          limits.cpu: "{{ item.get('resources', {}).get('quota', {}).get('limits', {}).get('cpu', projects_operator_default_quota_limit_cpu) }}"
-          limits.memory: "{{ item.get('resources', {}).get('quota', {}).get('limits', {}).get('memory', projects_operator_default_quota_limit_memory) }}"
-          requests.cpu: "{{ item.get('resources', {}).get('quota', {}).get('requests', {}).get('cpu', projects_operator_default_quota_request_cpu) }}"
-          requests.memory: "{{ item.get('resources', {}).get('quota', {}).get('requests', {}).get('memory', projects_operator_default_quota_request_memory) }}"
-          requests.storage: "{{ item.get('resources', {}).get('quota', {}).get('requests', {}).get('storage', projects_operator_default_quota_storage) }}"
+          pods: "{{ item.resources.quota.pods | default(projects_operator_default_quota_pods) }}"
+          configmaps: "{{ item.resources.quota.configmaps | default(projects_operator_default_quota_configmaps) }}"
+          secrets: "{{ item.resources.quota.secrets | default(projects_operator_default_quota_secrets) }}"
+          limits.cpu: "{{ item.resources.quota.limits.cpu | default(projects_operator_default_quota_limit_cpu) }}"
+          limits.memory: "{{ item.resources.quota.limits.memory | default(projects_operator_default_quota_limit_memory) }}"
+          requests.cpu: "{{ item.resources.quota.requests.cpu | default(projects_operator_default_quota_request_cpu) }}"
+          requests.memory: "{{ item.resources.quota.requests.memory | default(projects_operator_default_quota_request_memory) }}"
+          requests.storage: "{{ item.resources.quota.requests.storage | default(projects_operator_default_quota_storage) }}"
   loop: "{{ environments }}"
 
 - name: Create LimitRange
@@ -71,25 +58,22 @@
       metadata:
         name: default-limits
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       spec:
         limits:
           - type: Container
             default:
-              cpu: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('limits', {}).get('cpu', projects_operator_default_limit_cpu) }}"
-              memory: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('limits', {}).get('memory', projects_operator_default_limit_memory) }}"
+              cpu: "{{ item.resources.defaultlimitrange.limits.cpu | default(projects_operator_default_limit_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.limits.memory | default(projects_operator_default_limit_memory) }}"
             defaultRequest:
-              cpu: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('requests', {}).get('cpu', projects_operator_default_request_cpu) }}"
-              memory: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('requests', {}).get('memory', projects_operator_default_request_memory) }}"
+              cpu: "{{ item.resources.defaultlimitrange.requests.cpu | default(projects_operator_default_request_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.requests.memory | default(projects_operator_default_request_memory) }}"
             max:
-              cpu: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('max', {}).get('cpu', projects_operator_default_max_cpu) }}"
-              memory: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('max', {}).get('memory', projects_operator_default_max_memory) }}"
+              cpu: "{{ item.resources.defaultlimitrange.max.cpu | default(projects_operator_default_max_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.max.memory | default(projects_operator_default_max_memory) }}"
             min:
-              cpu: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('min', {}).get('cpu', projects_operator_default_min_cpu) }}"
-              memory: "{{ item.get('resources', {}).get('defaultLimitRange', {}).get('min', {}).get('memory', projects_operator_default_min_memory) }}"
+              cpu: "{{ item.resources.defaultlimitrange.min.cpu | default(projects_operator_default_min_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.min.memory | default(projects_operator_default_min_memory) }}"
   loop: "{{ environments }}"
 
 - name: Create RBAC - Admins
@@ -101,13 +85,10 @@
       metadata:
         name: admin-access
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       subjects:
         - kind: Group
-          name: "{{ rbac.adminGroup }}"
+          name: "{{ rbac.admingroup }}"
           apiGroup: rbac.authorization.k8s.io
       roleRef:
         kind: ClusterRole
@@ -124,13 +105,10 @@
       metadata:
         name: edit-access
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       subjects:
         - kind: Group
-          name: "{{ rbac.devGroup }}"
+          name: "{{ rbac.devgroup }}"
           apiGroup: rbac.authorization.k8s.io
       roleRef:
         kind: ClusterRole
@@ -147,13 +125,10 @@
       metadata:
         name: view-access
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       subjects:
         - kind: Group
-          name: "{{ rbac.viewerGroup }}"
+          name: "{{ rbac.viewergroup }}"
           apiGroup: rbac.authorization.k8s.io
       roleRef:
         kind: ClusterRole
@@ -170,17 +145,14 @@
       metadata:
         name: deny-all
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       spec:
         podSelector: {}
         policyTypes:
           - Ingress
           - Egress
   loop: "{{ environments }}"
-  when: ((item.networkPolicies | default({})).denyAll | default(projects_operator_default_networkPolicies_denyAll, true))
+  when: (item.networkpolicies.denyall | default(projects_operator_default_networkPolicies_denyAll))
 
 - name: Allow DNS
   kubernetes.core.k8s:
@@ -191,10 +163,7 @@
       metadata:
         name: allow-dns
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       spec:
         podSelector: {}
         policyTypes:
@@ -210,7 +179,7 @@
               - protocol: TCP
                 port: 53
   loop: "{{ environments }}"
-  when: ((item.networkPolicies | default({})).allowDNS | default(projects_operator_default_networkPolicies_allowDNS, true))
+  when: (item.networkpolicies.allowdns | default(projects_operator_default_networkPolicies_allowDNS))
 
 - name: Allow egress to internet
   kubernetes.core.k8s:
@@ -221,10 +190,7 @@
       metadata:
         name: allow-egress-internet
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       spec:
         podSelector: {}
         policyTypes:
@@ -234,7 +200,7 @@
               - ipBlock:
                   cidr: 0.0.0.0/0
   loop: "{{ environments }}"
-  when: ((item.networkPolicies | default({})).allowEgressInternet | default(projects_operator_default_networkPolicies_allowEgressInternet, true))
+  when: (item.networkpolicies.allowegressinternet | default(projects_operator_default_networkPolicies_allowEgressInternet))
 
 - name: Allow ingress from other namespaces
   kubernetes.core.k8s:
@@ -245,10 +211,7 @@
       metadata:
         name: allow-ingress-from-namespaces
         namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
       spec:
         podSelector: {}
         policyTypes: [Ingress]
@@ -258,21 +221,21 @@
                   matchLabels:
                     faspix.com/project: "{{ ansible_operator_meta.name }}"
   loop: "{{ environments }}"
-  when: ((item.networkPolicies | default({})).allowIngressFromOtherNamespaces | default(projects_operator_default_networkPolicies_allowIngressFromOtherNamespaces, true))
+  when: (item.networkpolicies.allowingressfromothernamespaces | default(projects_operator_default_networkPolicies_allowIngressFromOtherNamespaces))
 
-- name: Create default ServiceAccounts
+- name: Create ServiceAccounts
   kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: v1
       kind: ServiceAccount
       metadata:
-        name: "{{ item.1.name | default(projects_operator_default_service_account_name, true) }}"
-        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
-        labels: >-
-          {{
-            common_labels | combine({'faspix.com/environment': item.name})
-          }}
-  loop: "{{ environments | subelements('serviceAccounts', skip_missing=True) | default([]) }}"
+        name: "{{ sa }}"
+        namespace: "{{ ansible_operator_meta.name }}-{{ env.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': env.name}) }}"
+  loop: "{{ environments | subelements('serviceaccounts', skip_missing=True) }}"
   loop_control:
-    label: "{{ item.1.name if item.1 is defined else item.name }}"
+    label: "{{ item.0.name }} - {{ item.1 }}"
+  vars:
+    env: "{{ item.0 }}"
+    sa: "{{ item.1 }}"
