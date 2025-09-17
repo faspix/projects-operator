@@ -7,7 +7,7 @@ An Ansible-based Kubernetes Operator to manage multi-environment projects with n
 ## Table of Contents
 - [Features](#features)
 - [Installation](#installation)
-- [Example](#example)
+- [Example](#examples)
 
 ---
 
@@ -74,11 +74,9 @@ kubectl apply -f simple-project.yaml
 ```
 ---
 
-### Example
+### Example Project
 
 Below is an example of a `Project` custom resource that defines a multi-environment setup for a development team. This configuration provisions namespaces, resource quotas, RBAC, network policies, and service accounts for `prod`, `stage`, and `dev` environments.
-
-### Example Project Custom Resource
 
 **Metadata and Ownership**
 
