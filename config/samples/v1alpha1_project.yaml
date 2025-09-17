@@ -13,6 +13,7 @@ spec:
         denyall: true
         allowdns: false
         allowegressinternet: false
+        allowingressfromsamenamespace: true
         allowingressfromothernamespaces: true
       finalizers:
         - kubernetes
@@ -25,12 +26,13 @@ spec:
         version: latest
       resources:
         quota:
-          pods: "20"
-          configmaps: "20"
+          pods: 20
+          configmaps: 20
+          secrets: 20
+          storage: "100Gi"
           requests:
             cpu: "5"
             memory: "50Gi"
-            storage: "100Gi"
           limits:
             cpu: "8"
             memory: "80Gi"
@@ -49,7 +51,7 @@ spec:
             memory: "128Mi"
     - name: stage
       resources:
-        defaultLimitRange:
+        defaultlimitrange:
           requests:
             cpu: "0.5"
             memory: "1Gi"

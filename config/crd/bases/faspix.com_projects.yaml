@@ -33,6 +33,118 @@ spec:
             description: Spec defines the desired state of Project
             type: object
             x-kubernetes-preserve-unknown-fields: true
+            properties:
+              owner:
+                type: string
+                description: Owner of the project
+              environments:
+                type: array
+                description: List of environments to create in the project
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Environment name
+                    podsecurity:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: Pod Security standard type (baseline, restricted, privileged)
+                        level:
+                          type: string
+                        version:
+                          type: string
+                    resources:
+                      type: object
+                      properties:
+                        quota:
+                          type: object
+                          properties:
+                            pods:
+                              type: integer
+                            configmaps:
+                              type: integer
+                            secrets:
+                              type: integer
+                            storage:
+                              type: string
+                            limits:
+                              type: object
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                            requests:
+                              type: object
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                        defaultlimitrange:
+                          type: object
+                          properties:
+                            limits:
+                              type: object
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                            requests:
+                              type: object
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                            max:
+                              type: object
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                            min:
+                              type: object
+                              properties:
+                                cpu:
+                                  type: string
+                                memory:
+                                  type: string
+                    networkpolicies:
+                      type: object
+                      properties:
+                        denyall:
+                          type: boolean
+                        allowdns:
+                          type: boolean
+                        allowegressinternet:
+                          type: boolean
+                        allowingressfromothernamespaces:
+                          type: boolean
+                        allowingressfromsamenamespace:
+                          type: boolean
+                    serviceaccounts:
+                      type: array
+                      items:
+                        type: string
+                    finalizers:
+                      type: array
+                      items:
+                        type: string
+              rbac:
+                type: object
+                properties:
+                  admingroup:
+                    type: string
+                  devgroup:
+                    type: string
+                  viewergroup:
+                    type: string
           status:
             description: Status defines the observed state of Project
             type: object
