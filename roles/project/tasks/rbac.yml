@@ -1,0 +1,60 @@
+---
+- name: Create RBAC - Admins
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: RoleBinding
+      apiVersion: rbac.authorization.k8s.io/v1
+      metadata:
+        name: admin-access
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      subjects:
+        - kind: Group
+          name: "{{ rbac.admingroup }}"
+          apiGroup: rbac.authorization.k8s.io
+      roleRef:
+        kind: ClusterRole
+        name: admin
+        apiGroup: rbac.authorization.k8s.io
+  loop: "{{ environments }}"
+
+- name: Create RBAC - Developers
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: RoleBinding
+      apiVersion: rbac.authorization.k8s.io/v1
+      metadata:
+        name: edit-access
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      subjects:
+        - kind: Group
+          name: "{{ rbac.devgroup }}"
+          apiGroup: rbac.authorization.k8s.io
+      roleRef:
+        kind: ClusterRole
+        name: edit
+        apiGroup: rbac.authorization.k8s.io
+  loop: "{{ environments }}"
+
+- name: Create RBAC - Viewers
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: RoleBinding
+      apiVersion: rbac.authorization.k8s.io/v1
+      metadata:
+        name: view-access
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      subjects:
+        - kind: Group
+          name: "{{ rbac.viewergroup }}"
+          apiGroup: rbac.authorization.k8s.io
+      roleRef:
+        kind: ClusterRole
+        name: view
+        apiGroup: rbac.authorization.k8s.io
+  loop: "{{ environments }}"

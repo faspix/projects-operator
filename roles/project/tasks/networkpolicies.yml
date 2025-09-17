@@ -1,0 +1,107 @@
+---
+- name: Create default deny-all NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: NetworkPolicy
+      apiVersion: networking.k8s.io/v1
+      metadata:
+        name: deny-all
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Ingress
+          - Egress
+  loop: "{{ environments }}"
+  when: (item.networkpolicies.denyall | default(projects_operator_default_networkPolicies_denyAll))
+
+- name: Create allow DNS NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: NetworkPolicy
+      apiVersion: networking.k8s.io/v1
+      metadata:
+        name: allow-dns
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Egress
+        egress:
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+            ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+  loop: "{{ environments }}"
+  when: (item.networkpolicies.allowdns | default(projects_operator_default_networkPolicies_allowDNS))
+
+- name: Create allow egress to internet NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: NetworkPolicy
+      apiVersion: networking.k8s.io/v1
+      metadata:
+        name: allow-egress-internet
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Egress
+        egress:
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+  loop: "{{ environments }}"
+  when: (item.networkpolicies.allowegressinternet | default(projects_operator_default_networkPolicies_allowEgressInternet))
+
+- name: Create allow ingress from same namespace NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: NetworkPolicy
+      apiVersion: networking.k8s.io/v1
+      metadata:
+        name: allow-same-namespace
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Ingress
+        ingress:
+          - from:
+              - podSelector: {}
+  loop: "{{ environments }}"
+  when: (item.networkpolicies.allowingressfromsamenamespace | default(projects_operator_default_networkPolicies_allowIngressFromSameNamespace))
+
+- name: Create allow ingress from other namespaces NetworkPolicy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-ingress-from-namespaces
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        podSelector: {}
+        policyTypes: [Ingress]
+        ingress:
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    faspix.com/project: "{{ ansible_operator_meta.name }}"
+  loop: "{{ environments }}"
+  when: (item.networkpolicies.allowingressfromothernamespaces | default(projects_operator_default_networkPolicies_allowIngressFromOtherNamespaces))

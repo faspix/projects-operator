@@ -1,0 +1,22 @@
+---
+- name: Create a resource quota
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ResourceQuota
+      metadata:
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        name: resource-quota
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        hard:
+          pods: "{{ item.resources.quota.pods | default(projects_operator_default_quota_pods) }}"
+          configmaps: "{{ item.resources.quota.configmaps | default(projects_operator_default_quota_configmaps) }}"
+          secrets: "{{ item.resources.quota.secrets | default(projects_operator_default_quota_secrets) }}"
+          limits.cpu: "{{ item.resources.quota.limits.cpu | default(projects_operator_default_quota_limit_cpu) }}"
+          limits.memory: "{{ item.resources.quota.limits.memory | default(projects_operator_default_quota_limit_memory) }}"
+          requests.cpu: "{{ item.resources.quota.requests.cpu | default(projects_operator_default_quota_request_cpu) }}"
+          requests.memory: "{{ item.resources.quota.requests.memory | default(projects_operator_default_quota_request_memory) }}"
+          requests.storage: "{{ item.resources.quota.storage | default(projects_operator_default_quota_storage) }}"
+  loop: "{{ environments }}"

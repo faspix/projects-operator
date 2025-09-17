@@ -1,0 +1,27 @@
+---
+- name: Create LimitRange
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: LimitRange
+      metadata:
+        name: default-limits
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        limits:
+          - type: Container
+            default:
+              cpu: "{{ item.resources.defaultlimitrange.limits.cpu | default(projects_operator_default_limit_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.limits.memory | default(projects_operator_default_limit_memory) }}"
+            defaultRequest:
+              cpu: "{{ item.resources.defaultlimitrange.requests.cpu | default(projects_operator_default_request_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.requests.memory | default(projects_operator_default_request_memory) }}"
+            max:
+              cpu: "{{ item.resources.defaultlimitrange.max.cpu | default(projects_operator_default_max_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.max.memory | default(projects_operator_default_max_memory) }}"
+            min:
+              cpu: "{{ item.resources.defaultlimitrange.min.cpu | default(projects_operator_default_min_cpu) }}"
+              memory: "{{ item.resources.defaultlimitrange.min.memory | default(projects_operator_default_min_memory) }}"
+  loop: "{{ environments }}"

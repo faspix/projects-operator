@@ -1,0 +1,21 @@
+---
+- name: Create a namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: >-
+          {{
+            common_labels | combine({
+              'faspix.com/environment': item.name,
+              'pod-security.kubernetes.io/' ~ (item.podsecurity.type | default(projects_operator_default_podSecurity_type, true)):
+                (item.podsecurity.level | default(projects_operator_default_podSecurity_level, true)),
+              'pod-security.kubernetes.io/' ~ (item.podsecurity.type | default(projects_operator_default_podSecurity_type, true)) ~ '-version':
+                (item.podsecurity.version | default(projects_operator_default_podSecurity_version, true)),
+            })
+          }}
+      finalizers: "{{ item.get('finalizers', [projects_operator_default_finalizer]) }}"
+  loop: "{{ environments }}"
