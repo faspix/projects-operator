@@ -1,6 +1,4 @@
 ---
-projects_operator_default_service_account_name: deployer
-
 projects_operator_default_networkPolicies_denyAll: true
 projects_operator_default_networkPolicies_allowDNS: true
 projects_operator_default_networkPolicies_allowEgressInternet: true
