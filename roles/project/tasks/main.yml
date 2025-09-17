@@ -202,6 +202,26 @@
   loop: "{{ environments }}"
   when: (item.networkpolicies.allowegressinternet | default(projects_operator_default_networkPolicies_allowEgressInternet))
 
+- name: Allow ingress from same namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: NetworkPolicy
+      apiVersion: networking.k8s.io/v1
+      metadata:
+        name: allow-same-namespace
+        namespace: "{{ ansible_operator_meta.name }}-{{ item.name }}"
+        labels: "{{ common_labels | combine({'faspix.com/environment': item.name}) }}"
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Ingress
+        ingress:
+          - from:
+              - podSelector: {}
+  loop: "{{ environments }}"
+  when: (item.networkpolicies.allowingressfromsamenamespace | default(projects_operator_default_networkPolicies_allowIngressFromSameNamespace))
+
 - name: Allow ingress from other namespaces
   kubernetes.core.k8s:
     state: present
