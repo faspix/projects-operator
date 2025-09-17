@@ -6,29 +6,29 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: project-sample
 spec:
-  owner: "dev-team-1"
+  owner: "dev-team-1" # Team responsible for this project
   environments:
-    - name: prod
+    - name: prod # Production environment
       networkpolicies:
-        denyall: true
-        allowdns: false
-        allowegressinternet: false
-        allowingressfromsamenamespace: true
-        allowingressfromothernamespaces: true
+        denyall: true # Deny all inbound traffic by default
+        allowdns: false # Disable DNS access
+        allowegressinternet: false # Disable internet egress
+        allowingressfromsamenamespace: true # Allow ingress within the same namespace
+        allowingressfromothernamespaces: true # Allow ingress from other namespaces
       finalizers:
-        - kubernetes
+        - kubernetes # Ensure cleanup on deletion
       serviceaccounts:
-        - acc1
-        - acc2
+        - deploy # Service account for CI/CD
+        - monitoring # Service account for monitoring
       podsecurity:
-        type: audit
-        level: baseline
-        version: latest
+        type: audit # Pod security policy type
+        level: baseline # Security level
+        version: latest # Use the latest version
       resources:
-        quota:
-          pods: 20
-          configmaps: 20
-          secrets: 20
+        quota: # Resource quotas for the namespace
+          pods: 20 # integer
+          configmaps: 20 # integer
+          secrets: 20 # integer
           storage: "100Gi"
           requests:
             cpu: "5"
@@ -36,7 +36,7 @@ spec:
           limits:
             cpu: "8"
             memory: "80Gi"
-        defaultlimitrange:
+        defaultlimitrange: # Default resource limits for pods
           requests:
             cpu: "1"
             memory: "1Gi"
@@ -49,7 +49,7 @@ spec:
           min: 
             cpu: "100m"
             memory: "128Mi"
-    - name: stage
+    - name: stage # Staging environment
       resources:
         defaultlimitrange:
           requests:
@@ -58,8 +58,9 @@ spec:
           limits:
             cpu: "0.8"
             memory: "1Gi"
-    - name: dev
-  rbac:
-    admingroup: "dev-team-1-admins"
-    devgroup: "dev-team-1-devs"
-    viewergroup: "dev-team-1-viewers"
+    - name: dev # Development environment
+  rbac: # Role-based access control
+    admingroup: "dev-team-1-admins" # Admin group with full access
+    devgroup: "dev-team-1-devs" # Developer group with edit access
+    viewergroup: "dev-team-1-viewers" # Viewer group with read-only access
+
